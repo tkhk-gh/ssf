@@ -1,0 +1,34 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+  echo "usage: $0 <src_socket_path> <dest_port>"
+  echo "       e.g. $0 /tmp/mysql.sock 3306"
+  exit 0
+fi
+
+src_socket_path=$1
+dest_port=$2
+
+# TODO: check file existing and listening port
+
+# check socket file
+# TODO: add automatically detection
+if [ -e ${src_socket_path} ];then
+  read -p "${src_socket_path} already exists, delete? (yN): " yn
+  case "${yn}" in 
+    [yY] ) rm ${src_socket_path} ;;
+    *) echo "abort."; exit 1 ;;
+  esac
+fi
+
+fifo_path=/tmp/$0
+mkfifo ${fifo_path}
+
+echo "start redirect, ${src_socket_path} > 127.0.0.1:${dest_port}"
+nc -k -lU ${src_socket_path} < ${fifo_path} | nc 127.0.0.1 ${dest_port} > ${fifo_path}
+
+read -p "Quit redirect with any key. "
+
+# clean.
+rm ${src_socket_path}
+rm ${fifo_path}
