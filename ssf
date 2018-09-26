@@ -25,9 +25,13 @@ fifo_path=/tmp/$0
 mkfifo ${fifo_path}
 
 echo "start redirect, ${src_socket_path} > 127.0.0.1:${dest_port}"
-nc -k -lU ${src_socket_path} < ${fifo_path} | nc 127.0.0.1 ${dest_port} > ${fifo_path}
 
-read -p "Quit redirect with any key. "
+while :; do
+  nc -v -lU ${src_socket_path} < ${fifo_path} | nc 127.0.0.1 ${dest_port} > ${fifo_path}
+  rm ${src_socket_path}
+done
+
+# read -p "Quit redirect with any key. "
 
 # clean.
 rm ${src_socket_path}
